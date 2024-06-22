@@ -36,6 +36,7 @@
 
 /* USBASP capabilities */
 #define USBASP_CAP_0_TPI    0x01
+#define USBASP_CAP_89S52    0x02
 
 /* programming state */
 #define PROG_STATE_IDLE         0

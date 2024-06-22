@@ -20,6 +20,28 @@ uchar sck_sw_delay;
 uchar sck_spcr;
 uchar sck_spsr;
 uchar isp_hiaddr;
+uchar stk500_devicecode; // 0xE0 and 0xE1 means AT89S51/52 
+                         // Reset has to be reversed
+
+int is8051() {
+	return (stk500_devicecode & 0xFE) == 0xE0?1:0;
+}
+
+void resetActive() {
+	if (is8051()) {
+		ISP_OUT |= (1 << ISP_RST);
+	} else {
+		ISP_OUT &= ~(1 << ISP_RST);
+	}
+}
+
+void resetInactive() {
+	if (is8051()) {
+		ISP_OUT &= ~(1 << ISP_RST);
+	} else {
+		ISP_OUT |= (1 << ISP_RST);
+	}
+}
 
 void spiHWenable() {
 	SPCR = sck_spcr;
@@ -105,21 +127,23 @@ void ispDelay() {
 	}
 }
 
-void ispConnect() {
+void ispConnect(uchar stk500_devcode) {
+
+	stk500_devicecode = stk500_devcode;
 
 	/* all ISP pins are inputs before */
 	/* now set output pins */
 	ISP_DDR |= (1 << ISP_RST) | (1 << ISP_SCK) | (1 << ISP_MOSI);
 
 	/* reset device */
-	ISP_OUT &= ~(1 << ISP_RST); /* RST low */
+	resetActive();
 	ISP_OUT &= ~(1 << ISP_SCK); /* SCK low */
 
 	/* positive reset pulse > 2 SCK (target) */
 	ispDelay();
-	ISP_OUT |= (1 << ISP_RST); /* RST high */
+	resetInactive();
 	ispDelay();
-	ISP_OUT &= ~(1 << ISP_RST); /* RST low */
+	resetActive(); 
 
 	if (ispTransmit == ispTransmit_hw) {
 		spiHWenable();
@@ -134,7 +158,8 @@ void ispDisconnect() {
 	/* set all ISP pins inputs */
 	ISP_DDR &= ~((1 << ISP_RST) | (1 << ISP_SCK) | (1 << ISP_MOSI));
 	/* switch pullups off */
-	ISP_OUT &= ~((1 << ISP_RST) | (1 << ISP_SCK) | (1 << ISP_MOSI));
+	resetInactive();
+	ISP_OUT &= ~((1 << ISP_SCK) | (1 << ISP_MOSI));
 
 	/* disable hardware SPI */
 	spiHWdisable();
@@ -144,7 +169,7 @@ void spiInit() {
 	/* Set MISO output, all others input */
 	ISP_DDR = (1 << ISP_MISO);
 	/* Pull up SS' */
-	ISP_OUT = (1 << ISP_RST);
+	resetInactive();
 	/* Enable SPI, slave mode */
 	SPCR = (1 << SPE | 1<< SPIE);
 }
@@ -189,26 +214,31 @@ uchar ispTransmit_hw(uchar send_byte) {
 }
 
 uchar ispEnterProgrammingMode() {
-	uchar check;
+	uchar check, check8051;
 	uchar count = 32;
 
 	while (count--) {
 		ispTransmit(0xAC);
 		ispTransmit(0x53);
 		check = ispTransmit(0);
-		ispTransmit(0);
-
-		if (check == 0x53) {
-			return 0;
+		check8051 = ispTransmit(0);
+		if (is8051()) {
+			if (check8051 == 0x69) {
+				return 0;
+			}
+		} else {
+			if (check == 0x53) {
+				return 0;
+			}
 		}
 
 		spiHWdisable();
 
 		/* pulse RST */
 		ispDelay();
-		ISP_OUT |= (1 << ISP_RST); /* RST high */
+		resetInactive();
 		ispDelay();
-		ISP_OUT &= ~(1 << ISP_RST); /* RST low */
+		resetActive();
 		ispDelay();
 
 		if (ispTransmit == ispTransmit_hw) {

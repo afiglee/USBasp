@@ -25,7 +25,7 @@
 #define ISP_SCK   PB5
 
 /* Prepare connection to target device */
-void ispConnect();
+void ispConnect(uchar stk500_devcode);
 
 /* Close connection to target device */
 void ispDisconnect();

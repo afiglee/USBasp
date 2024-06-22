@@ -70,7 +70,7 @@ uchar usbFunctionSetup(uchar data[8]) {
 		prog_address_newmode = 0;
 
 		ledRedOn();
-		ispConnect();
+		ispConnect(data[2]);
 
 	} else if (data[1] == USBASP_FUNC_DISCONNECT) {
 		ispDisconnect();
@@ -201,7 +201,7 @@ uchar usbFunctionSetup(uchar data[8]) {
 		len = 0xff; /* multiple out */
 	
 	} else if (data[1] == USBASP_FUNC_GETCAPABILITIES) {
-		replyBuffer[0] = USBASP_CAP_0_TPI;
+		replyBuffer[0] = USBASP_CAP_0_TPI | USBASP_CAP_89S52;
 		replyBuffer[1] = 0;
 		replyBuffer[2] = 0;
 		replyBuffer[3] = 0;
