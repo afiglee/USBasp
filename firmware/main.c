@@ -92,6 +92,45 @@ uchar usbFunctionSetup(uchar data[8]) {
 		prog_state = PROG_STATE_READFLASH;
 		len = 0xff; /* multiple in */
 
+	} else if (data[1] == USBASP_FUNC_READ_BLOCK) {
+		// Implementation of reading a block of data
+		// and writing block of data differs from regular read
+		// Rational for change is a new set of commands
+		// implemented by AT89LP51/52 and later AT89LP51/52xD2 versions
+		// Most of that command use autoincrement and blocks of data 0..64
+		// So, format and meaning are different:
+		// First meaningfull byte is an actual command which may be related 
+		// to EEPROM, signature, flash, etc.
+		// There is no difference for usbasp to handle either of such command.
+		// The rest will represent 2 bytes of 4 byte command 
+		// (the last byte will be first read byte in usbFunctionRead)
+		// following by exactly 64 bytes.
+		// Example of command for AT89LP51/52:
+		// 0xD2, 0x10, 0x00
+		// Which means:  
+		// 0xD2 - operation "Write Data with AutoErase",
+		// 0x10, 0x00 - start address to read data from - which translates to 0x1000,
+		
+
+		ispTransmit(data[2]); // send command byte
+		ispTransmit(data[4]); // high byte of address
+		ispTransmit(data[3]); // low byte of address
+
+		prog_state = PROG_STATE_READ_BLOCK;
+		len = 0xff; /* multiple in */
+
+	} else if (data[1] == USBASP_FUNC_WRITE_BLOCK) {
+		// Implementation of writing a block of data - see
+		// description of USBASP_FUNC_READ_BLOCK
+
+
+		ispTransmit(data[2]); // send command byte
+		ispTransmit(data[4]); // high byte of address
+		ispTransmit(data[3]); // low byte of address
+		prog_nbytes = data[5]; // number of bytes to write
+
+		prog_state = PROG_STATE_WRITE_BLOCK;
+		len = 0xff; /* multiple out */
 	} else if (data[1] == USBASP_FUNC_READEEPROM) {
 
 		if (!prog_address_newmode)
@@ -235,25 +274,35 @@ uchar usbFunctionRead(uchar *data, uchar len) {
 	uchar i;
 
 	/* check if programmer is in correct read state */
-	if ((prog_state != PROG_STATE_READFLASH) && (prog_state
-			!= PROG_STATE_READEEPROM) && (prog_state != PROG_STATE_TPI_READ)) {
-		return 0xff;
-	}
-
-	/* fill packet TPI mode */
-	if(prog_state == PROG_STATE_TPI_READ)
+	switch (prog_state) {
+	case PROG_STATE_READFLASH:
+	case PROG_STATE_READEEPROM:
+	case PROG_STATE_READ_BLOCK:
+		break;
+	case PROG_STATE_TPI_READ:
 	{
+		/* fill packet TPI mode */
 		tpi_read_block(prog_address, data, len);
 		prog_address += len;
 		return len;
 	}
+	break;
+	default:
+		return 0xff; // error, not in read state	
+	}
 
 	/* fill packet ISP mode */
 	for (i = 0; i < len; i++) {
-		if (prog_state == PROG_STATE_READFLASH) {
+		switch (prog_state) {
+		case PROG_STATE_READFLASH:
 			data[i] = ispReadFlash(prog_address);
-		} else {
+			break;
+		case PROG_STATE_READEEPROM:
 			data[i] = ispReadEEPROM(prog_address);
+			break;
+		case PROG_STATE_READ_BLOCK:
+			data[i] = ispTransmit(data[i]);
+			break;
 		}
 		prog_address++;
 	}
@@ -272,12 +321,12 @@ uchar usbFunctionWrite(uchar *data, uchar len) {
 	uchar i;
 
 	/* check if programmer is in correct write state */
-	if ((prog_state != PROG_STATE_WRITEFLASH) && (prog_state
-			!= PROG_STATE_WRITEEEPROM) && (prog_state != PROG_STATE_TPI_WRITE)) {
-		return 0xff;
-	}
-
-	if (prog_state == PROG_STATE_TPI_WRITE)
+	switch (prog_state) {
+	case PROG_STATE_WRITEFLASH:
+	case PROG_STATE_WRITEEEPROM:
+	case PROG_STATE_WRITE_BLOCK:
+		break;
+	case PROG_STATE_TPI_WRITE:
 	{
 		tpi_write_block(prog_address, data, len);
 		prog_address += len;
@@ -289,10 +338,15 @@ uchar usbFunctionWrite(uchar *data, uchar len) {
 		}
 		return 0;
 	}
+	break;
+	default:
+		return 0xff; // error, not in read state	
+	}
 
 	for (i = 0; i < len; i++) {
-
-		if (prog_state == PROG_STATE_WRITEFLASH) {
+		switch (prog_state) {
+		case PROG_STATE_WRITEFLASH:
+			{
 			/* Flash */
 
 			if (prog_pagesize == 0) {
@@ -308,9 +362,16 @@ uchar usbFunctionWrite(uchar *data, uchar len) {
 				}
 			}
 
-		} else {
+		} 
+		break;
+
+		case PROG_STATE_WRITEEEPROM:
 			/* EEPROM */
 			ispWriteEEPROM(prog_address, data[i]);
+			break;
+		case PROG_STATE_WRITE_BLOCK:
+			ispTransmit(data[i]);
+			break;
 		}
 
 		prog_nbytes--;
@@ -332,6 +393,7 @@ uchar usbFunctionWrite(uchar *data, uchar len) {
 
 	return retVal;
 }
+
 
 int main(void) {
 	uchar i, j;

@@ -28,6 +28,12 @@
 #define USBASP_FUNC_TPI_RAWWRITE     14
 #define USBASP_FUNC_TPI_READBLOCK    15
 #define USBASP_FUNC_TPI_WRITEBLOCK   16
+#define USBASP_FUNC_READ_BLOCK      17 // Read block of data from target device 
+                                       // using autoincrement
+#define USBASP_FUNC_WRITE_BLOCK     18 // Write block of data to target device
+                                       // using autoincrement
+
+                                       
 #define USBASP_FUNC_GETCAPABILITIES 127
 
 #define USBASP_FUNC_SPI_RECVSTART 32
@@ -47,6 +53,8 @@
 #define PROG_STATE_TPI_READ     5
 #define PROG_STATE_TPI_WRITE    6
 #define PROG_STATE_SERIAL       7
+#define PROG_STATE_READ_BLOCK   8 // Read block of data from target device
+#define PROG_STATE_WRITE_BLOCK  9 // Write block of data to target device
 
 /* Block mode flags */
 #define PROG_BLOCKFLAG_FIRST    1
