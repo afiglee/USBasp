@@ -20,7 +20,7 @@ uchar sck_sw_delay;
 uchar sck_spcr;
 uchar sck_spsr;
 uchar isp_hiaddr;
-uchar stk500_devicecode; // 0xE0 and 0xE1 means AT89S51/52 
+uchar stk500_devicecode; // 0xE0 and 0xE1 means AT89S51/52 or other high active reset chips
                          // Reset has to be reversed
 
 int is8051() {
