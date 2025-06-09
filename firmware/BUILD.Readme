@@ -1,0 +1,9 @@
+To build on Mac OS X:
+1. Install avr-gcc:
+homebrew install avr-gcc
+2. Run ./build.sh
+3. Firmware hex file located in build/USBaspv2.hex
+4. Upload hex to usbasp with avrdude:
+   In build directory run 
+   make flash
+   
