@@ -16,6 +16,8 @@
 
 #define spiHWdisable() SPCR = 0
 
+uchar (*ispTransmit)(uchar);
+
 uchar sck_sw_delay;
 uchar sck_spcr;
 uchar sck_spsr;
