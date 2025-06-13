@@ -13,9 +13,22 @@
     #error "libusb support is required for this project. Please install libusb or libusb-1.0."    
 #endif
 
+#include <string>
+#include <memory>
 
-int usbOpenDevice(usb_dev_handle *device, int vendor,
-  const char *vendorName, int product, const char *productName, const char *port);
+class USB {
 
+public:
+    USB(unsigned int timeout): m_timeout(timeout){}
+    int usbOpenDevice(int vid, const std::string& usbvendor, int pid, const std::string& usbproduct, const std::string& port);
+    void usbCloseDevice();
+    int transfer(bool receive, const uint8_t function, const uint8_t send[], uint8_t *data, uint16_t dataLen);
+
+protected:
+    static libusb_context *m_ctx;
+    static bool m_initialized;
+    usb_dev_handle *m_device;
+    unsigned int m_timeout;
+};
 
 #endif
