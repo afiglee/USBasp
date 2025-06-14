@@ -123,6 +123,9 @@ int main(int argc, char *argv[]) {
   int ovsigck = 0;
   int calibrate = 0;
   int verbose = 0;
+  int firmware = 0;
+  int deviceid = 0;
+  
   std::string port, partdesc;
 
   std::vector<std::shared_ptr<UPDATE>> updates;
@@ -133,6 +136,7 @@ int main(int argc, char *argv[]) {
                               {"bitclock", required_argument, NULL, 'B'},
                               {"noerase", no_argument, NULL, 'D'},
                               {"erase", no_argument, NULL, 'e'},
+                              {"firmware-version", no_argument, NULL, 'f'},
                               {"test-memory", no_argument, NULL, 'n'},
                               {"osccal", no_argument, NULL, 'O'},
                               {"part", required_argument, NULL, 'p'},
@@ -146,7 +150,7 @@ int main(int argc, char *argv[]) {
   int option_idx = 0;
   char ch;
 
-  while ((ch = getopt_long(argc, argv, "?Ab:B:c:C:DeE:Fi:l:nNp:OP:qrtT:U:vVx:",
+  while ((ch = getopt_long(argc, argv, "?b:B:DdefFi:np:OP:U:vV",
                            longopts, &option_idx)) != -1) {
     switch (ch) {
     case 'b':                       // Override default programmer baud rate
@@ -192,6 +196,9 @@ int main(int argc, char *argv[]) {
     case 'D': // Disable auto-erase
       uflags &= ~UF_AUTO_ERASE;
       break;
+    case 'd':
+      deviceid = 1; //Report detected chip
+      break;
 
     case 'e': // Perform a chip erase
       erase = 1;
@@ -201,6 +208,10 @@ int main(int argc, char *argv[]) {
 
     case 'F': // Override invalid signature check
       ovsigck = 1;
+      break;
+
+    case 'f': // Report USBasp firmware version 
+      firmware = 1;
       break;
 
     case 'n':
