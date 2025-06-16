@@ -3,7 +3,7 @@
 #include <iostream>
 #include <ostream>
 
-enum LOG_LEVEL { FATAL, ERROR, WARNING, INFO, DEBUG };
+enum LOG_LEVEL { FATAL = 0, ERROR, WARNING, INFO, DEBUG };
 
 void set_log_level(enum LOG_LEVEL level);
 enum LOG_LEVEL get_log_level();

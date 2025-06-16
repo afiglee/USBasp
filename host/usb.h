@@ -21,7 +21,7 @@ class USB {
 public:
   USB(unsigned int timeout) : m_timeout(timeout) {}
   int usbOpenDevice(int vid, const std::string &usbvendor, int pid,
-                    const std::string &usbproduct, const std::string &port);
+                    const std::string &usbproduct);
   void usbCloseDevice();
   int transfer(bool receive, const uint8_t function, const uint8_t send[],
                uint8_t *data, uint16_t dataLen);

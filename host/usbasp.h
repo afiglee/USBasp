@@ -48,7 +48,7 @@ class USBAsp : protected USB {
 public:
   USBAsp(const std::shared_ptr<Config> &config)
       : USB(config->timeout), m_config(config) {}
-  int open(const std::string &port);
+  int open();
   void close();
   int transmit(bool receive, enum USBASP_FUNC functionid, const uint8_t *send,
                uint8_t *daya, uint16_t datalen);

@@ -153,14 +153,9 @@ int main(int argc, char *argv[]) {
   int option_idx = 0;
   char ch;
 
-  while ((ch = getopt_long(argc, argv, "?b:B:DdefFi:np:OP:U:vV",
+  while ((ch = getopt_long(argc, argv, "hB:DdefFi:np:OU:vV",
                            longopts, &option_idx)) != -1) {
     switch (ch) {
-    case 'b':                       // Override default programmer baud rate
-      baudrate = std::stoi(optarg); // throws std::invalid_argument
-                                    // throws std::out_of_range
-      break;
-
     case 'B': {
 
       // Specify bit clock period
@@ -229,10 +224,6 @@ int main(int argc, char *argv[]) {
       partdesc = optarg;
       break;
 
-    case 'P':
-      port = optarg;
-      break;
-
     case 'U': {
       std::shared_ptr<UPDATE> upd = parse_op(optarg);
       if (!upd) {
@@ -255,7 +246,7 @@ int main(int argc, char *argv[]) {
         *longopts[option_idx].flag = 1;
       break;
 
-    case '?': // Help
+    case 'h': // Help
       usage(0);
       break;
 
@@ -272,6 +263,13 @@ int main(int argc, char *argv[]) {
               << "and may be found at https://github.com/afiglee/USBasp" << std::endl
               << std::endl;
     exit(0);
+  }
+  switch (verbose) {
+    case 0: set_log_level(ERROR);    
+    case 1: set_log_level(WARNING);
+    case 2: set_log_level(INFO);
+    default:
+    case 3: set_log_level(DEBUG);
   }
 
   return 0;

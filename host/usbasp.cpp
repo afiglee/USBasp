@@ -50,12 +50,12 @@ int USBAsp::transmit(bool receive, enum USBASP_FUNC functionid,
 }
 
 // Interface prog
-int USBAsp::open(const std::string &port) {
+int USBAsp::open() {
 
-  debug << "usbasp_open(" << port << " )\n";
+  debug << "usbasp_open()\n";
 
   if (usbOpenDevice(m_config->usbvid, m_config->vendorName, m_config->usbpid,
-                    m_config->productName, port) != 0) {
+                    m_config->productName) != 0) {
     error << "cannot find USB device with vid=0x" << std::hex
           << m_config->usbvid << " pid=0x" << std::hex << m_config->usbpid
           << " vendor='" << m_config->vendorName << "'"

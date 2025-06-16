@@ -10,7 +10,7 @@ libusb_context *USB::m_ctx = NULL;
 bool USB::m_initialized = false;
 
 int USB::usbOpenDevice(int vid, const string &usbvendor, int pid,
-                       const string &usbproduct, const std::string &port) {
+                       const string &usbproduct) {
 
   usb_dev_handle handle = NULL;
   int errorCode = LIBUSB_ERROR_NOT_FOUND;
@@ -87,24 +87,6 @@ int USB::usbOpenDevice(int vid, const string &usbvendor, int pid,
           errorCode = LIBUSB_ERROR_NOT_FOUND;
         }
       }
-      if (errorCode == 0) {
-        if (port != "usb") {
-          // -P option given
-          libusb_get_string_descriptor_ascii(handle, descriptor.iSerialNumber,
-                                             (unsigned char *)str, sizeof(str));
-          // char bus_num[21];
-
-          // sprintf(bus_num, "%d", libusb_get_bus_number(dev));
-          // char dev_addr[21];
-
-          // sprintf(dev_addr, "%d", libusb_get_device_address(dev));
-          debug << "bus=" << libusb_get_bus_number(dev)
-                << " device=" << libusb_get_device_address(dev)
-                << " serial=" << str << std::endl;
-          // if(!check_for_port_argument_match(port, bus_num, dev_addr, str))
-          //   errorCode = LIBUSB_ERROR_NOT_FOUND;
-        }
-      }
       if (errorCode == 0)
         break;
       libusb_close(handle);
@@ -143,24 +125,4 @@ int USB::transfer(bool receive, const uint8_t function, const uint8_t send[],
   return nbytes;
 }
 
-#if 0
-static int check_for_port_argument_match(const std::string& port, char *bus, char *device, char *serial_num) {
 
-  if(port.str_starts(port, "usb:")) {
-    port += usb_len + 1;
-    char *colon_pointer = strchr(port, ':');
-
-    if(colon_pointer) {
-      // Value contains ':' character. Compare with bus/device.
-      if(strncmp(port, bus, colon_pointer - port))
-        return 0;
-      port = colon_pointer + 1;
-      return str_eq(port, device);
-    }
-    // Serial number case
-    return *port && str_ends(serial_num, port);
-  }
-  // Invalid -P option.
-  return 0;
-}
-#endif
