@@ -125,7 +125,7 @@ int main(int argc, char *argv[]) {
   int verbose = 0;
   int firmware = 0;
   int deviceid = 0;
-  
+
   std::string port, partdesc;
 
   std::vector<std::shared_ptr<UPDATE>> updates;
@@ -265,7 +265,8 @@ int main(int argc, char *argv[]) {
 
   if (showversion) {
     std::cout << "Version " << __DATE__ << std::endl
-              << "This program inspired by https://github.com/avrdudes/avrdude/"
+              << "This program inspired by avrdude https://github.com/avrdudes/avrdude/" << std::endl
+              << "and may be found at https://github.com/afiglee/USBasp" << std::endl
               << std::endl;
     exit(0);
   }
