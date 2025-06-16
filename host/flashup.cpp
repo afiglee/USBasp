@@ -1,9 +1,12 @@
 #include <getopt.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 
 #include <iostream>
+#include <memory>
 #include <string>
+#include <vector>
 
 #include "flashup.h"
 #include "log.h"

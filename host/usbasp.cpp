@@ -1,6 +1,8 @@
 #include "usbasp.h"
 #include "log.h"
 
+#include <string.h>
+
 #include <iostream>
 using std::cout;
 using std::endl;
